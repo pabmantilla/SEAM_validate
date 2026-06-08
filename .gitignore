@@ -1,0 +1,18 @@
+# virtualenv
+SEAM_venv/
+
+# data & results
+data/
+results/
+*.h5
+*.npy
+*.npz
+*.csv
+*.tsv
+
+# slurm scripts & logs
+*.sh
+slurm_logs/
+*.out
+*.err
+slurm-*.out
