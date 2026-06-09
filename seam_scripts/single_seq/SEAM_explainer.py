@@ -29,7 +29,8 @@ PROJ_ROOT = Path(__file__).resolve().parent.parent.parent
 SEEDS_CSV = PROJ_ROOT / "single_seq/seq_subsets/seam_seeds.csv"
 MUT_LIB_DIR = PROJ_ROOT / "results/single_seq/mutagenesis_lib"
 ISM_DIR = PROJ_ROOT / "results/single_seq/ism"
-OUT_DIR = PROJ_ROOT / "results/single_seq/foregrounds"
+RESULTS_DIR = PROJ_ROOT / "results/single_seq"
+DEFAULT_OUT_NAME = "foregrounds"
 
 
 def seq_id_for_idx(seq_idx):
@@ -47,15 +48,22 @@ def main():
                         help='seq_idx in seam_seeds.csv (default 3609 = peak27535_Reversed)')
     parser.add_argument('--n-clusters', type=int, default=DEFAULT_N_CLUSTERS,
                         help=f'K-means clusters (default {DEFAULT_N_CLUSTERS})')
+    parser.add_argument('--out-name', type=str, default=DEFAULT_OUT_NAME,
+                        help=f'output subdir under results/single_seq (default {DEFAULT_OUT_NAME})')
+    parser.add_argument('--mut-dir', type=str, default=str(MUT_LIB_DIR),
+                        help='input mutagenesis-lib dir (default 100k)')
+    parser.add_argument('--ism-dir', type=str, default=str(ISM_DIR),
+                        help='input ISM-attribution dir (default 100k)')
     args = parser.parse_args()
     SEQ_ID = seq_id_for_idx(args.seq_idx)
     N_CLUSTERS = args.n_clusters
+    OUT_DIR = RESULTS_DIR / args.out_name
 
     seq_dir = OUT_DIR / SEQ_ID
     seq_dir.mkdir(parents=True, exist_ok=True)
 
-    mut_path = MUT_LIB_DIR / f"{SEQ_ID}.h5"
-    ism_path = ISM_DIR / f"{SEQ_ID}.h5"
+    mut_path = Path(args.mut_dir) / f"{SEQ_ID}.h5"
+    ism_path = Path(args.ism_dir) / f"{SEQ_ID}.h5"
     assert mut_path.exists(), f"missing mutagenesis lib: {mut_path}"
     assert ism_path.exists(), f"missing ism attributions: {ism_path}"
 

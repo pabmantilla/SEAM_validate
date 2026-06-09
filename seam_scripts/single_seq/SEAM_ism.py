@@ -126,11 +126,16 @@ def main():
     parser.add_argument('--start', type=int, default=0)
     parser.add_argument('--end', type=int, default=None)
     parser.add_argument('--batch-size', type=int, default=1024)
+    parser.add_argument('--mut-dir', type=str, default=str(MUT_LIB_DIR),
+                        help='input mutagenesis-lib dir (default 100k)')
+    parser.add_argument('--out-dir', type=str, default=str(OUT_DIR),
+                        help='output ISM dir (default 100k)')
     args = parser.parse_args()
     SEQ_ID = seq_id_for_idx(args.seq_idx)
+    out_dir = Path(args.out_dir)
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    mut_path = MUT_LIB_DIR / f"{SEQ_ID}.h5"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    mut_path = Path(args.mut_dir) / f"{SEQ_ID}.h5"
     assert mut_path.exists(), f"missing mutagenesis lib: {mut_path}"
 
     with h5py.File(mut_path, 'r') as f:
@@ -178,7 +183,7 @@ def main():
     out_name = f"{SEQ_ID}.h5"
     if args.start != 0 or end != N_total:
         out_name = f"{SEQ_ID}_chunk{args.start}-{end}.h5"
-    out_path = OUT_DIR / out_name
+    out_path = out_dir / out_name
 
     with h5py.File(out_path, 'w') as f:
         f.create_dataset('ism_raw', data=ism_raw,

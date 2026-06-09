@@ -61,13 +61,17 @@ def coverage_complete(chunks):
 
 
 def main():
+    global ISM_DIR
     parser = argparse.ArgumentParser()
     parser.add_argument('--seq-idx', type=int, default=3609,
                         help='seq_idx in seam_seeds.csv (default 3609 = peak27535_Reversed)')
     parser.add_argument('--if-complete', action='store_true',
                         help='no-op unless all chunks are present (for end-of-job auto-merge)')
+    parser.add_argument('--ism-dir', type=str, default=str(ISM_DIR),
+                        help='ISM dir holding the chunks to merge (default 100k)')
     args = parser.parse_args()
     SEQ_ID = seq_id_for_idx(args.seq_idx)
+    ISM_DIR = Path(args.ism_dir)
 
     out_path = ISM_DIR / f"{SEQ_ID}.h5"
     chunks = collect_chunks(SEQ_ID)
