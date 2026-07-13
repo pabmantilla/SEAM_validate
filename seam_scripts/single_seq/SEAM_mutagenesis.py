@@ -60,7 +60,10 @@ def main():
                         help=f'number of mutants incl. WT (default {LIB_SIZE})')
     parser.add_argument('--out-dir', type=str, default=str(OUT_DIR),
                         help='output mutagenesis-lib dir (default 100k)')
+    parser.add_argument('--mut-rate', type=float, default=MUT_RATE,
+                        help=f'per-position mutation rate (default {MUT_RATE})')
     args = parser.parse_args()
+    mut_rate = args.mut_rate
     SEQ_ID, WT_SEQ, MEAN_VALUE = load_seed(args.seq_idx)
     lib_size = args.lib_size
     out_dir = Path(args.out_dir)
@@ -73,8 +76,8 @@ def main():
         return
 
     print(f"seq_idx={args.seq_idx}  seq_id={SEQ_ID}  mean_value={MEAN_VALUE}")
-    print(f"Building {lib_size} mutants @ {MUT_RATE:.0%} on {SEQ_ID}")
-    mut_generator = squid.mutagenizer.RandomMutagenesis(mut_rate=MUT_RATE, seed=SEED)
+    print(f"Building {lib_size} mutants @ {mut_rate:.0%} on {SEQ_ID}")
+    mut_generator = squid.mutagenizer.RandomMutagenesis(mut_rate=mut_rate, seed=SEED)
 
     wt_onehot = str_to_onehot(WT_SEQ)                                # (230, 4)
     wt_var = wt_onehot[VAR_START:VAR_END]                            # (200, 4)
@@ -92,7 +95,7 @@ def main():
         f.attrs['mean_value'] = float(MEAN_VALUE)
         f.attrs['cell_type'] = 'K562'
         f.attrs['n_mutants'] = lib_size
-        f.attrs['mut_rate'] = MUT_RATE
+        f.attrs['mut_rate'] = mut_rate
         f.attrs['seq_length'] = SEQ_LENGTH
         f.attrs['var_start'] = VAR_START
         f.attrs['var_end'] = VAR_END
