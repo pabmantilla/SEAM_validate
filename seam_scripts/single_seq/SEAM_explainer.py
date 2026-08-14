@@ -12,6 +12,7 @@ Usage:
 import argparse
 import csv
 import gc
+import os
 import numpy as np
 import h5py
 from pathlib import Path
@@ -21,7 +22,9 @@ from seam import Compiler, Clusterer, MetaExplainer
 CELL_TYPE = "K562"
 
 DEFAULT_N_CLUSTERS = 50
-MUT_RATE = 0.10
+# Background/MSM mut_rate is resolved per-run in main(): the mut5 library is 5%, the others 10%.
+# (Do NOT hardcode a single rate here -- doing so silently cut mut5 backgrounds at the 10% threshold.)
+DEFAULT_MUT_RATE = 0.10
 ALPHABET = ['A', 'C', 'G', 'T']
 VAR_START, VAR_END = 15, 215
 
@@ -54,7 +57,20 @@ def main():
                         help='input mutagenesis-lib dir (default 100k)')
     parser.add_argument('--ism-dir', type=str, default=str(ISM_DIR),
                         help='input ISM-attribution dir (default 100k)')
+    parser.add_argument('--mut-rate', type=float, default=None,
+                        help='background/MSM mutation rate; default auto: 0.05 for a mut5 lib, else 0.10 '
+                             '(override also via SEAM_MUT_RATE env)')
     args = parser.parse_args()
+    # Resolve mut_rate: explicit flag > SEAM_MUT_RATE env > auto-detect from the mut-dir tag.
+    # The mut5 library is 5% mutation; the 10% libraries are 10%. Using the library's true rate is
+    # essential -- it sets the entropy threshold that decides which positions are background.
+    if args.mut_rate is not None:
+        MUT_RATE = args.mut_rate
+    elif os.environ.get('SEAM_MUT_RATE'):
+        MUT_RATE = float(os.environ['SEAM_MUT_RATE'])
+    else:
+        MUT_RATE = 0.05 if 'mut5' in str(args.mut_dir).lower() else DEFAULT_MUT_RATE
+    print(f"mut_rate = {MUT_RATE}  (mut-dir={args.mut_dir})")
     SEQ_ID = seq_id_for_idx(args.seq_idx)
     N_CLUSTERS = args.n_clusters
     OUT_DIR = RESULTS_DIR / args.out_name
